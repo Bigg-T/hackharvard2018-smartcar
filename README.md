@@ -1,3 +1,7 @@
+# Hack Harvard 2018 Smartcar
+
+## [API](https://smartcar.com/docs#introduction)
+
 # [Boilerplate]()
 Boilerplate for React App + Jest + Enzyme.
 
@@ -9,11 +13,11 @@ Linux/Mac Terminal <br />
 * $ cd <some_dir>/src
   * where package.json live
 * $ npm install
-* $ npm start 
+* $ npm start
   * the app on localhost:3000
 
 ### Testing
 * $yarn test
 
-If error due to TypeError: environment.setup, then eject, then re-run all 
+If error due to TypeError: environment.setup, then eject, then re-run all
 test suites.
