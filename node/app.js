@@ -14,9 +14,11 @@ const validator = require('validator');
 
 // Set Smartcar configuration
 const PORT = envvar.number('PORT', 8000);
-const SMARTCAR_CLIENT_ID = envvar.string('SMARTCAR_CLIENT_ID');
-const SMARTCAR_SECRET = envvar.string('SMARTCAR_SECRET');
+// const SMARTCAR_CLIENT_ID = envvar.string('SMARTCAR_CLIENT_ID');
+// const SMARTCAR_SECRET = envvar.string('SMARTCAR_SECRET');
 
+const SMARTCAR_CLIENT_ID = "896786d0-dc0a-422c-9fda-7aaa7093b1a7";
+const SMARTCAR_SECRET = "d1e1ef4e-f367-4765-a518-7452659d6b08";
 // Validate Client ID and Secret are UUIDs
 if (!validator.isUUID(SMARTCAR_CLIENT_ID)) {
   throw new Error('CLIENT_ID is invalid. Please check to make sure you have replaced CLIENT_ID with the Client ID obtained from the Smartcar developer dashboard.');
@@ -38,7 +40,7 @@ const client = new smartcar.AuthClient({
   clientId: SMARTCAR_CLIENT_ID,
   clientSecret: SMARTCAR_SECRET,
   redirectUri: SMARTCAR_REDIRECT_URI,
-  testMode: SMARTCAR_MODE === 'test',
+  testMode: SMARTCAR_MODE === 'live',
 });
 
 /**
@@ -94,7 +96,7 @@ app.get('/error', function(req, res, next) {
   res.render('error', {action, message});
 
 });
-
+app.use('/uploads', express.static(__dirname + '/public'));
 /**
  * Disconnect each vehicle to cleanly logout.
  */
@@ -179,6 +181,99 @@ app.get('/vehicles', function(req, res, next) {
 });
 
 /**
+ * Renders a list of vehicles. Lets the user select a vehicle and type of
+ * request, then sends a POST request to the /request route.
+ */
+app.get('/vehicles/json', function(req, res, next) {
+  const {access, vehicles} = req.session;
+  if (!access) {
+    return res.redirect('/');
+  }
+  const {accessToken} = access;
+  smartcar.getVehicleIds(accessToken)
+    .then(function(data) {
+      console.log(JSON.stringify(data));
+      const vehicleIds = data.vehicles;
+      const vehiclePromises = vehicleIds.map(vehicleId => {
+        const vehicle = new smartcar.Vehicle(vehicleId, accessToken);
+        req.session.vehicles[vehicleId] = {
+          id: vehicleId,
+        };
+        return vehicle.info();
+      });
+
+      return Promise.all(vehiclePromises)
+        .then(function(data) {
+          // Add vehicle info to vehicle objects
+          _.forEach(data, vehicle => {
+            const {id: vehicleId} = vehicle;
+            req.session.vehicles[vehicleId] = vehicle;
+          });
+
+          res.send({vehicles: req.session.vehicles});
+        })
+        .catch(function(err) {
+          const message = err.message || 'Failed to get vehicle info.';
+          const action = 'fetching vehicle info';
+          res.send({"status": 404, "msg" : message});
+        });
+    });
+
+});
+
+// app.get('/location', (req, res, next) => {
+//   console.log(req.session.vehicles);
+//   // console.log(res);
+//   const {access, vehicles} = req.session;
+//   if (!access) {
+//     return res.redirect('/');
+//   }
+// });
+
+// app.get('/location/:id', (req, res, next) => {
+//   console.log(req.session.vehicles);
+//   // console.log(res);
+//   const {access, vehicles} = req.session;
+//   if (!access) {
+//     return res.redirect('/');
+//   }
+//   console.log(req.params)
+//   res.send({params : req.params});
+// });
+
+
+app.get('/lock/:vehicleId/json', (req, res, next) => {
+  const {access, vehicles} = req.session;
+  if (!access) {
+    return res.redirect('/');
+  }
+  console.log(req.params)
+  // const {vehicleId, requestType: type} = req.body;
+  const vehicle = vehicles[vehicleId];
+  const instance = new smartcar.Vehicle(vehicleId, access.accessToken);
+
+  let data = null;
+  instance.lock()
+    .then(function() {
+      res.send({"data": "successful"})
+      // res.render('data', {
+      //   // Lock and unlock requests do not return data if successful
+      //   data: {
+      //     action: 'Lock request sent.',
+      //     isLocked: true
+      //   },
+      //   type,
+      //   vehicle,
+      // });
+    })
+    .catch(function(err) {
+      const message = err.message || 'Failed to send lock request to vehicle.';
+      const action = 'locking vehicle';
+      return redirectToError(res, message, action);
+    });
+
+})
+/**
  * Triggers a request to the vehicle and renders the response.
  */
 app.post('/request', function(req, res, next) {
@@ -205,7 +300,10 @@ app.post('/request', function(req, res, next) {
       break;
     case 'location':
       instance.location()
-        .then(({data}) => res.render('data', {data, type, vehicle}))
+        .then(({data}) => {
+          console.log(data)
+          res.render('location', {data, type, vehicle})
+        })
         .catch(function(err) {
           const message = err.message || 'Failed to get vehicle location.';
           const action = 'fetching vehicle location';

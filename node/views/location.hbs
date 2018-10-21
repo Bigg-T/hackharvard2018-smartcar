@@ -1,0 +1,95 @@
+<div id="vehicles">
+  <h3>
+    Located your {{vehicle.year}} {{vehicle.make}} {{vehicle.model}}
+  </h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Data</th>
+        <th scope="col">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each data}}
+        <tr>
+          <td>{{@key}}</td>
+          <td>{{this}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  <span id="myKey" value={{data.latitude}}></span>
+  <span id="myVal" value={{data.longitude}}></span>
+
+    <div id="map" style="width: 100%; height: 400px; background: grey" />
+  <script  type="text/javascript" charset="UTF-8" >
+
+  /**
+  * Moves the map to display over Berlin
+  *
+  * @param  {H.Map} map      A HERE Map instance within the application
+  */
+  let lat = document.getElementById("myKey").textContent;//<%=data.latitude%>
+  let lng = document.getElementById("myVal").textContent;//<%=data.longitude%>
+  console.log(lat);
+  console.log(lng);
+  function moveMapToBerlin(map){
+  map.setCenter({lat:lat, lng:lng});
+  map.setZoom(14);
+  }
+
+
+
+
+
+  /**
+  * Boilerplate map initialization code starts below:
+  */
+
+  //Step 1: initialize communication with the platform
+  // var platform = new H.service.Platform({
+  // app_id: 'devportal-demo-20180625',
+  // app_code: '9v2BkviRwi9Ot26kp2IysQ',
+  // useHTTPS: true
+  // });
+
+  // Instantiate a map and platform object:
+  var platform = new H.service.Platform({
+    'app_id': 'ASut1sH8HEWJVkdokaEF',
+    'app_code': 'kR7OBt_GR1jmj-CQpJNREw',
+    useHTTPS: true
+  });
+  var pixelRatio = window.devicePixelRatio || 1;
+  var defaultLayers = platform.createDefaultLayers({
+  tileSize: pixelRatio === 1 ? 256 : 512,
+  ppi: pixelRatio === 1 ? undefined : 320
+  });
+
+  //Step 2: initialize a map  - not specificing a location will give a whole world view.
+  var map = new H.Map(document.getElementById('map'),
+  defaultLayers.normal.map, {pixelRatio: pixelRatio});
+
+  // Create a marker icon from an image URL:
+  var icon = new H.map.Icon('uploads/location2.png');
+
+  // Create a marker using the previously instantiated icon:
+  var marker = new H.map.Marker({ lat: lat, lng: lng }, { icon: icon });
+
+  // Add the marker to the map:
+  map.addObject(marker);
+  //Step 3: make the map interactive
+  // MapEvents enables the event system
+  // Behavior implements default interactions for pan/zoom (also on mobile touch environments)
+  var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+
+  // Create the default UI components
+  var ui = H.ui.UI.createDefault(map, defaultLayers);
+
+  // Now use the map as required...
+  moveMapToBerlin(map);
+  </script>
+  <div>
+    <a href="/vehicles" class="btn btn-primary" role="button">Make another request</a>
+    <a href="/logout" class="btn btn-link" role="button">Logout</a>
+  </div>
+</div>

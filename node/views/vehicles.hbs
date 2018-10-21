@@ -1,8 +1,14 @@
 <div id="vehicles">
   <h3>Step 2: Make a request</h3>
-  <p>
-    Congrats! You have successfully authenticated with Smartcar and exchanged an authorization code for an access token that can be used to make requests to vehicles. Now, select a vehicle and request type below and click "Send request" to trigger a request to the vehicle.
-  </p>
+
+  <div class="list-group">
+    {{#each vehicles}}
+      <button type="button" class="btn btn-outline-primary form-control"
+      id="vehicle" name="vehicleId" value="{{id}}" href="/">
+        {{year}} {{make}} {{model}}
+      </button>
+    {{/each}}
+  </div>
 
   <form action="/request" method="post">
     <div class="form-group">
@@ -22,8 +28,10 @@
         <option value="lock">Lock doors</option>
         <option value="unlock">Unlock doors</option>
       </select>
-    </div>
-    <button type="submit" class="btn btn-primary">Send request</button>
+    <input type="image" src="https://defenders.org/sites/default/files/styles/large/public/tiger-dirk-freder-isp.jpg"
+    alt="Submit"
+    class="btn btn-primary"
+    />
     <a href="/logout" class="btn btn-link" role="button">Logout</a>
   </form>
 </div>

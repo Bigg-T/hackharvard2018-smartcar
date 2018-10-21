@@ -1,3 +1,9 @@
+### used the demo and hack around
+- TODO
+  - Migrate to REACT
+  - Create REST
+  - Improve UI
+
 ### smartcar-node demo
 [Running our demo app](https://support.smartcar.com/getting-started/run-our-demo-app)
 
